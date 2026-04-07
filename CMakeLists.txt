@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.20)
 
 project(
     AudioEngine
-    VERSION 0.1.0
-    DESCRIPTION "Ultra-Low-Latency Audio Isolation Engine (Phase 1 – C++ core)"
+    VERSION 0.2.0
+    DESCRIPTION "Ultra-Low-Latency Audio Isolation Engine for Hearables"
     LANGUAGES CXX
 )
 
@@ -40,6 +40,9 @@ add_compile_options(
 add_library(audio_engine STATIC
     src/stft_processor.cpp
     src/audio_engine.cpp
+    src/noise_suppressor.cpp
+    src/istft_processor.cpp
+    src/pipeline.cpp
 )
 
 target_include_directories(audio_engine
@@ -82,6 +85,42 @@ if(BUILD_TESTS)
     target_compile_features(test_stft_processor PRIVATE cxx_std_20)
 
     add_test(NAME STFTProcessorTests COMMAND test_stft_processor)
+
+    # test_noise_suppressor
+    add_executable(test_noise_suppressor
+        tests/test_noise_suppressor.cpp
+    )
+    target_link_libraries(test_noise_suppressor PRIVATE audio_engine)
+    target_compile_features(test_noise_suppressor PRIVATE cxx_std_20)
+    add_test(NAME NoiseSuppressorTests COMMAND test_noise_suppressor)
+
+    # test_istft_processor
+    add_executable(test_istft_processor
+        tests/test_istft_processor.cpp
+    )
+    target_link_libraries(test_istft_processor PRIVATE audio_engine)
+    target_compile_features(test_istft_processor PRIVATE cxx_std_20)
+    add_test(NAME ISTFTProcessorTests COMMAND test_istft_processor)
+
+    # test_pipeline
+    add_executable(test_pipeline
+        tests/test_pipeline.cpp
+    )
+    target_link_libraries(test_pipeline PRIVATE audio_engine)
+    target_compile_features(test_pipeline PRIVATE cxx_std_20)
+    add_test(NAME PipelineTests COMMAND test_pipeline)
+endif()
+
+# ── Benchmark ─────────────────────────────────────────────────────────────────
+
+option(BUILD_BENCHMARKS "Build latency benchmarks" ON)
+
+if(BUILD_BENCHMARKS)
+    add_executable(latency_benchmark
+        benchmarks/latency_benchmark.cpp
+    )
+    target_link_libraries(latency_benchmark PRIVATE audio_engine)
+    target_compile_features(latency_benchmark PRIVATE cxx_std_20)
 endif()
 
 # ── Install rules (optional, useful for cross-compilation workflows) ──────────
